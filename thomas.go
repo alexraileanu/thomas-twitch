@@ -55,6 +55,15 @@ func main() {
         // meaning that when attempting to unmarshal the json body below it will fail
         bodyCopy := request.Body
         reqBody, _ := ioutil.ReadAll(bodyCopy)
+
+        // if the body is empty or the request is anything but post, we don't care about it
+        // so we just throw a cheeky 404 to throw off potential snoopy clients
+        if len(reqBody) == 0 || request.Method != "POST" {
+            writer.WriteHeader(http.StatusNotFound)
+            fmt.Fprintf(writer, "404 page not found")
+            return
+        }
+
         secret := os.Getenv("SUB_SECRET")
         msg := getHmacMsg(request, reqBody)
         hash := strings.SplitN(request.Header.Get(TwitchMessageSignatureHeader), "=", 2)
